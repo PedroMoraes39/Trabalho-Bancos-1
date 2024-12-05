@@ -1,132 +1,120 @@
 PRAGMA foreign_keys = ON;
 
--- Tabela Pessoa (superclasse)
-CREATE TABLE Pessoa (
+CREATE TABLE IF NOT EXISTS Pessoa (
     CPF TEXT PRIMARY KEY,
     Nome TEXT NOT NULL
 );
 
--- Tabela Cliente (subclasse de Pessoa)
-CREATE TABLE Cliente (
+CREATE TABLE IF NOT EXISTS Cliente (
     CPF_Cliente TEXT PRIMARY KEY,
     Endereco TEXT NOT NULL,
     Telefone TEXT NOT NULL,
     FOREIGN KEY (CPF_Cliente) REFERENCES Pessoa(CPF)
-			    ON DELETE RESTRICT
-			    ON UPDATE CASCADE
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE
 );
 
--- Tabela Funcionario (subclasse de Pessoa)
-CREATE TABLE Funcionario (
+CREATE TABLE IF NOT EXISTS Funcionario (
     CPF_Funcionario TEXT PRIMARY KEY,
     Cargo TEXT NOT NULL,
     Salario REAL NOT NULL,
     FOREIGN KEY (CPF_Funcionario) REFERENCES Pessoa(CPF)
-    			ON DELETE RESTRICT
-			    ON UPDATE CASCADE
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE
 );
 
--- Tabela Dependente (associada exclusivamente ao Funcionario)
-CREATE TABLE Dependente (
-		CPF_Funcionario TEXT NOT NULL,
-		ID_Dependente INTEGER NOT NULL,
-		Nome TEXT NOT NULL,
-		Data_Nascimento TEXT NOT NULL,
-		PRIMARY KEY (CPF_Funcionario, ID_Dependente),
-		FOREIGN KEY (CPF_Funcionario) REFERENCES Funcionario(CPF_Funcionario)
-		    	ON DELETE RESTRICT
-			    ON UPDATE CASCADE
+CREATE TABLE IF NOT EXISTS Dependente (
+    CPF_Funcionario TEXT NOT NULL,
+    ID_Dependente INTEGER NOT NULL,
+    Nome TEXT NOT NULL,
+    Data_Nascimento TEXT NOT NULL,
+    PRIMARY KEY (CPF_Funcionario, ID_Dependente),
+    FOREIGN KEY (CPF_Funcionario) REFERENCES Funcionario(CPF_Funcionario)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE
 );
 
--- Tabela Gerencia
-CREATE TABLE Gerencia (
-		CPF_Funcionario TEXT NOT NULL,
-		CPF_Supervisor TEXT NOT NULL,
-		PRIMARY KEY (CPF_Funcionario, CPF_Supervisor),
-		FOREIGN KEY (CPF_Funcionario) REFERENCES Funcionario(CPF_Funcionario),
-				ON DELETE RESTRICT
-				ON UPDATE CASCADE
-		FOREIGN KEY (CPF_Supervisor) REFERENCES Funcionario(CPF_Funcionario)
-				ON DELETE RESTRICT
-				ON UPDATE CASCADE
+CREATE TABLE IF NOT EXISTS Gerencia (
+    CPF_Funcionario TEXT NOT NULL,
+    CPF_Supervisor TEXT NOT NULL,
+    PRIMARY KEY (CPF_Funcionario, CPF_Supervisor),
+    FOREIGN KEY (CPF_Funcionario) REFERENCES Funcionario(CPF_Funcionario)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE,
+    FOREIGN KEY (CPF_Supervisor) REFERENCES Funcionario(CPF_Funcionario)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE
 );
 
--- Tabela Fornecedor (subclasse de Pessoa)
-CREATE TABLE Fornecedor (
+CREATE TABLE IF NOT EXISTS Fornecedor (
     CPF_Fornecedor TEXT PRIMARY KEY,
     Contato TEXT NOT NULL,
     Tipo_Fornecedor TEXT NOT NULL CHECK (Tipo_Fornecedor IN ('Nacional', 'Internacional')),
     FOREIGN KEY (CPF_Fornecedor) REFERENCES Pessoa(CPF)
-    		  ON DELETE RESTRICT
-			    ON UPDATE CASCADE
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE
 );
 
--- Tabela Veículo
-CREATE TABLE Veiculo (
+CREATE TABLE IF NOT EXISTS Veiculo (
     Placa TEXT PRIMARY KEY,
     Modelo TEXT NOT NULL,
     Ano INTEGER NOT NULL,
     CPF_Cliente TEXT NOT NULL,
     FOREIGN KEY (CPF_Cliente) REFERENCES Cliente(CPF_Cliente)
-		    	ON DELETE RESTRICT
-			    ON UPDATE CASCADE
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE
 );
 
--- Tabela Peça
-CREATE TABLE Peca (
+CREATE TABLE IF NOT EXISTS Peca (
     Nome_Peca TEXT PRIMARY KEY,
     Estoque INTEGER NOT NULL,
     Preco REAL NOT NULL
 );
 
--- Tabela Serviço
-CREATE TABLE Servico (
-		ID_Servico INTEGER PRIMARY KEY AUTOINCREMENT,
+CREATE TABLE IF NOT EXISTS Servico (
+    ID_Servico INTEGER PRIMARY KEY AUTOINCREMENT,
     Tipo_Servico TEXT NOT NULL,
     Descricao TEXT NOT NULL,
     Preco REAL NOT NULL
 );
 
--- Tabela Ordem de Serviço
-CREATE TABLE Ordem_Servico (
+CREATE TABLE IF NOT EXISTS Ordem_Servico (
     ID_OS INTEGER NOT NULL,
     Data_servico DATE NOT NULL,
-    Placa_Veiculo TEXT NOT NULL,
-    PRIMARY KEY (ID_OS, Placa_Veiculo),
-    FOREIGN KEY (Placa_Veiculo) REFERENCES Veiculo(Placa)
-		    	ON DELETE RESTRICT
-			    ON UPDATE CASCADE
+    Placa TEXT NOT NULL,
+    PRIMARY KEY (ID_OS),
+    FOREIGN KEY (Placa) REFERENCES Veiculo(Placa)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE
 );
 
--- Tabela que registra execução dos serviços
-CREATE TABLE Executa (
+CREATE TABLE IF NOT EXISTS Executa (
     ID_OS INTEGER NOT NULL,
     ID_Servico INTEGER NOT NULL,
     CPF_Funcionario TEXT NOT NULL,
     PRIMARY KEY (ID_OS, ID_Servico, CPF_Funcionario),
-    FOREIGN KEY (ID_OS) REFERENCES Ordem_Servico(ID_OS),
-			    ON DELETE RESTRICT
-			    ON UPDATE CASCADE,
-    FOREIGN KEY (ID_Servico) REFERENCES Servico(ID_Servico),
-			    ON DELETE RESTRICT
-			    ON UPDATE CASCADE,
+    FOREIGN KEY (ID_OS) REFERENCES Ordem_Servico(ID_OS)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE,
+    FOREIGN KEY (ID_Servico) REFERENCES Servico(ID_Servico)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE,
     FOREIGN KEY (CPF_Funcionario) REFERENCES Funcionario(CPF_Funcionario)
-			    ON DELETE RESTRICT
-			    ON UPDATE CASCADE
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE
 );
 
--- Tabela que registra peças necessárias para os serviços
-CREATE TABLE Precisa (
+CREATE TABLE IF NOT EXISTS Precisa (
     ID_Servico INTEGER NOT NULL,
     Nome_Peca TEXT NOT NULL,
     Quantidade INTEGER NOT NULL,
     PRIMARY KEY (ID_Servico, Nome_Peca),
-    FOREIGN KEY (ID_Servico) REFERENCES Servico(ID_Servico),
-				  ON DELETE RESTRICT
-			    ON UPDATE CASCADE,
+    FOREIGN KEY (ID_Servico) REFERENCES Servico(ID_Servico)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE,
     FOREIGN KEY (Nome_Peca) REFERENCES Peca(Nome_Peca)
-			    ON DELETE RESTRICT
-			    ON UPDATE CASCADE
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE
 );
 
 INSERT INTO Pessoa (CPF, Nome) VALUES
@@ -272,7 +260,6 @@ INSERT INTO Cliente (cpf_cliente, endereco, telefone) VALUES
 ('38234567890', 'Rua L1, 888, Jardim W', '(11) 8901-2345'),
 ('39234567890', 'Rua M1, 999, Bairro V', '(11) 9012-3456');
 
--- Tabela Fornecedor
 INSERT INTO Fornecedor (cpf_fornecedor, contato, tipo_fornecedor) VALUES
 ('40234567890', 'pecasautomotivas@superspares.com', 'Nacional'),
 ('41234567890', 'fornecedorferragens@autopecasbrasil.com.br', 'Internacional'),
@@ -285,7 +272,6 @@ INSERT INTO Fornecedor (cpf_fornecedor, contato, tipo_fornecedor) VALUES
 ('48234567890', 'pecasimportadas@autoimportbr.com', 'Internacional'),
 ('49234567890', 'vendaspecas@peçascarbrasil.com', 'Nacional');
 
--- Tabela Funcionario
 INSERT INTO Funcionario (cpf_funcionario, cargo, salario) VALUES
 ('50234567890', 'Mecânico', 2500),
 ('51234567890', 'Atendente', 2000),
@@ -365,7 +351,6 @@ INSERT INTO Dependente (CPF_Funcionario, ID_Dependente, Nome, Data_Nascimento) V
 ('78234567890', 'D029', 'Lucas Souza', '2011-06-05'),
 ('79234567890', 'D030', 'Rafaela Matos', '2016-11-12');
 
--- Inserindo dados na tabela Veiculo
 INSERT INTO Veiculo (Placa, Modelo, Ano, CPF_Cliente) VALUES
 ('ABC1A23', 'Honda Civic', 2020, '12345678901'),
 ('DEF2B34', 'Toyota Corolla', 2021, '12345678901'),
@@ -394,8 +379,7 @@ INSERT INTO Veiculo (Placa, Modelo, Ano, CPF_Cliente) VALUES
 ('UVW5Y67', 'Nissan Kicks', 2022, '23234567890'),
 ('XYZ6Z78', 'Renault Logan', 2021, '24234567890');
 
--- Inserindo dados na tabela Ordem_Serviço
-INSERT INTO Ordem_Servico (ID_OS, Data_servico, Placa_Veiculo) VALUES
+INSERT INTO Ordem_Servico (ID_OS, Data_servico, Placa) VALUES
 (1, '2024-01-15', 'ABC1A23'),
 (2, '2024-02-10', 'DEF2B34'),
 (3, '2024-01-20', 'GHI3C45'),
@@ -423,7 +407,6 @@ INSERT INTO Ordem_Servico (ID_OS, Data_servico, Placa_Veiculo) VALUES
 (25, '2024-02-25', 'UVW5Y67'),
 (26, '2024-01-12', 'XYZ6Z78');
 
--- Inserindo dados na tabela Servico
 INSERT INTO Servico (ID_Servico,Tipo_Servico, Descricao, Preco) VALUES
 (1, 'Troca de Óleo', 'Substituição do óleo do motor e filtro de óleo', 150.00),
 (2, 'Balanceamento', 'Balanceamento das rodas para evitar vibrações', 100.00),
@@ -446,7 +429,6 @@ INSERT INTO Servico (ID_Servico,Tipo_Servico, Descricao, Preco) VALUES
 (19, 'Calibragem de Pneus', 'Calibragem com nitrogênio ou ar comprimido', 50.00),
 (20, 'Troca de Embreagem', 'Substituição do kit de embreagem', 800.00);
 
--- Inserindo dados na tabela Peca
 INSERT INTO Peca (Nome_Peca, Estoque, Preco) VALUES
 ('Filtro de Óleo', 120, 25.00),
 ('Filtro de Ar', 100, 30.00),
@@ -518,7 +500,6 @@ INSERT INTO Peca (Nome_Peca, Estoque, Preco) VALUES
 ('Câmbio Automático', 2, 5000.00),
 ('Câmbio Manual', 5, 3000.00);
 
--- Inserir dados na tabela Executa com base em mecânicos
 INSERT INTO Executa (ID_OS, ID_Servico, CPF_Funcionario) VALUES
 (1, 1, '50234567890'),
 (1, 2, '54234567890'),
@@ -561,7 +542,6 @@ INSERT INTO Executa (ID_OS, ID_Servico, CPF_Funcionario) VALUES
 (20, 19, '50234567890'),
 (20, 20, '54234567890');
 
--- Inserir dados na tabela Precisa
 INSERT INTO Precisa (ID_Servico, Nome_Peca, Quantidade) VALUES
 (1, 'Filtro de Óleo', 1),
 (1, 'Óleo Lubrificante 5W30', 5),
@@ -582,16 +562,16 @@ INSERT INTO Precisa (ID_Servico, Nome_Peca, Quantidade) VALUES
 (11, 'Filtro de Ar', 1),
 (11, 'Filtro de Combustível', 1),
 (12, 'Sensor de Oxigênio', 2),
-(13, 'Bicos Injetores', 4),
+(13, 'Farol Dianteiro', 4),
 (14, 'Amortecedor Dianteiro', 2),
 (14, 'Amortecedor Traseiro', 2),
-(15, 'Tinta Automotiva', 1),
-(16, 'Polidor de Carroceria', 1),
-(17, 'Kit de Som Automotivo', 1),
+(15, 'Eixo Cardan', 1),
+(16, 'Cilindro Mestre de Freio', 1),
+(17, 'Alavanca de Câmbio', 1),
 (18, 'Filtro de Ar', 1),
 (19, 'Pneu Aro 15', 4),
 (19, 'Pneu Aro 16', 4),
-(20, 'Kit de Embreagem', 1);
+(20, 'Mola Helicoidal', 1);
 
 INSERT INTO Gerencia (CPF_Funcionario, CPF_Supervisor) VALUES
 ('50234567890', '52234567890'),
